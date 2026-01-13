@@ -18,7 +18,7 @@ M_RIGHT     ?= 0.05
 M_TOP       ?= 0.240
 M_BOTTOM    ?= 0.065
 
-FONT_SIZE   ?= 12
+FONT_SIZE   ?= 20
 PADDING     ?= 8
 
 # Optional:
