@@ -45,6 +45,9 @@ run:
 clean:
 	@rm -f "$(OUT)"
 
+install:
+	pip install -r requirements.txt
+
 vars:
 	@echo PYTHON=$(PYTHON)
 	@echo SCRIPT=$(SCRIPT)
