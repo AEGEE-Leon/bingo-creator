@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import csv
 import io
 import random
 import argparse
@@ -13,19 +12,29 @@ from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.pdfbase import pdfmetrics
 
 from pypdf import PdfReader, PdfWriter
+from openpyxl import load_workbook
 
 
-# ---------------- CSV ----------------
-def read_first_column(csv_path: Path) -> list[str]:
+# ---------------- XLSX ----------------
+def read_first_column_xlsx(xlsx_path: Path, sheet_name: str | None = None) -> list[str]:
+    """
+    Reads the first column (A) from an .xlsx file.
+    Skips empty cells, trims whitespace, and de-duplicates preserving order.
+    By default uses the active sheet, or a named sheet if provided.
+    """
+    if not xlsx_path.exists():
+        raise FileNotFoundError(f"Excel file not found: {xlsx_path}")
+
+    wb = load_workbook(filename=str(xlsx_path), read_only=True, data_only=True)
+    ws = wb[sheet_name] if sheet_name else wb.active
+
     items: list[str] = []
-    with csv_path.open("r", encoding="utf-8", newline="") as f:
-        reader = csv.reader(f)
-        for row in reader:
-            if not row:
-                continue
-            text = (row[0] or "").strip()
-            if text:
-                items.append(text)
+    for (cell,) in ws.iter_rows(min_row=1, max_col=1, values_only=True):
+        if cell is None:
+            continue
+        text = str(cell).strip()
+        if text:
+            items.append(text)
 
     # De-duplicate preserving order
     seen = set()
@@ -34,6 +43,7 @@ def read_first_column(csv_path: Path) -> list[str]:
         if x not in seen:
             seen.add(x)
             deduped.append(x)
+
     return deduped
 
 
@@ -181,7 +191,7 @@ def make_overlay_page_pdf(
 # ---------------- Main export ----------------
 def export_bingos_pdf_from_pdf_template(
     template_pdf: Path,
-    csv_path: Path,
+    xlsx_path: Path,
     out_pdf: Path,
     n: int,
     seed: int | None,
@@ -197,13 +207,14 @@ def export_bingos_pdf_from_pdf_template(
     font_size: int,
     # padding
     padding_pt: float,
+    sheet_name: str | None = None,
 ):
     if not template_pdf.exists():
         raise FileNotFoundError(f"Template PDF not found: {template_pdf}")
-    if not csv_path.exists():
-        raise FileNotFoundError(f"CSV not found: {csv_path}")
+    if not xlsx_path.exists():
+        raise FileNotFoundError(f"Excel not found: {xlsx_path}")
 
-    items = read_first_column(csv_path)
+    items = read_first_column_xlsx(xlsx_path, sheet_name=sheet_name)
     rng = random.Random(seed)
 
     reader = PdfReader(str(template_pdf))
@@ -248,7 +259,8 @@ def main():
         description="Generate N bingo pages as a PDF using a PDF template as the background."
     )
     parser.add_argument("--template-pdf", default="aegeeleon-bingo-template.pdf", help="Background template PDF")
-    parser.add_argument("--csv", default="puntos.csv", help="CSV file with items in the first column")
+    parser.add_argument("--xlsx", default="puntos.xlsx", help="Excel .xlsx file with items in column A")
+    parser.add_argument("--sheet", default=None, help="Sheet name (optional). If omitted, uses active sheet.")
     parser.add_argument("-n", "--number", type=int, default=1, help="Number of bingo pages to generate")
     parser.add_argument("--seed", type=int, default=None, help="Random seed (optional)")
     parser.add_argument("--out", default="bingos_aegee_leon.pdf", help="Output PDF path")
@@ -277,7 +289,7 @@ def main():
 
     export_bingos_pdf_from_pdf_template(
         template_pdf=Path(args.template_pdf),
-        csv_path=Path(args.csv),
+        xlsx_path=Path(args.xlsx),
         out_pdf=Path(args.out),
         n=args.number,
         seed=args.seed,
@@ -290,6 +302,7 @@ def main():
         font_name=args.font_name,
         font_size=args.font_size,
         padding_pt=args.padding,
+        sheet_name=args.sheet,
     )
 
     print(f"✔ PDF created: {args.out} ({args.number} pages)")
