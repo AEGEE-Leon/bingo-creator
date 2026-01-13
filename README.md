@@ -46,6 +46,14 @@ python bingo_aegee.py -n 10 --xlsx bingo_ideas_example.xlsx --template-pdf aegee
 
 Generate with defaults:
 
+Install the dependencies with:
+
+```bash
+make install
+```
+
+Create the bingo cards
+
 ```bash
 make run
 ```
