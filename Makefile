@@ -10,7 +10,7 @@
 PYTHON       ?= python
 SCRIPT       ?= bingo_aegee.py
 
-N            ?= 10
+N            ?= 1
 XLSX         ?= bingo_ideas_example.xlsx
 SHEET        ?=
 TEMPLATE_PDF ?= aegeeleon-bingo-template.pdf
