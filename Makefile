@@ -16,8 +16,8 @@ SHEET        ?=
 TEMPLATE_PDF ?= aegeeleon-bingo-template.pdf
 OUT          ?= combined_bingo_cards.pdf
 
-M_LEFT       ?= 0.05
-M_RIGHT      ?= 0.05
+M_LEFT       ?= 0.045
+M_RIGHT      ?= 0.045
 M_TOP        ?= 0.240
 M_BOTTOM     ?= 0.065
 
